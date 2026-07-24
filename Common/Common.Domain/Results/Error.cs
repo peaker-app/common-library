@@ -21,4 +21,7 @@ public record Error(string Code, string Description, ErrorType Type)
 
     public static Error Failure(string code, string description) =>
         new(code, description, ErrorType.Failure);
+
+    public static Error Unavailable(string code, string description) =>
+        new(code, description, ErrorType.Unavailable);
 }
