@@ -13,24 +13,35 @@ public sealed class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Ex
         {
             await next(context);
         }
+        catch (BadHttpRequestException exception)
+        {
+            logger.LogWarning(exception, "Rejected request to {Path}", context.Request.Path);
+            await WriteProblemDetailsAsync(context, exception.StatusCode, "The request could not be processed.");
+        }
         catch (Exception exception)
         {
             logger.LogError(exception, "Unhandled exception while processing {Path}", context.Request.Path);
-            await WriteProblemDetailsAsync(context);
+            await WriteProblemDetailsAsync(
+                context, StatusCodes.Status500InternalServerError, "An unexpected error occurred.");
         }
 #pragma warning restore CA1031
     }
 
-    private static Task WriteProblemDetailsAsync(HttpContext context)
+    private static Task WriteProblemDetailsAsync(HttpContext context, int statusCode, string title)
     {
+        if (context.Response.HasStarted)
+        {
+            return Task.CompletedTask;
+        }
+
         var problemDetails = new ProblemDetails
         {
-            Status = StatusCodes.Status500InternalServerError,
-            Title = "An unexpected error occurred.",
+            Status = statusCode,
+            Title = title,
             Extensions = { ["traceId"] = context.TraceIdentifier }
         };
 
-        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+        context.Response.StatusCode = statusCode;
 
         return context.Response.WriteAsJsonAsync(problemDetails);
     }
