@@ -4,6 +4,8 @@ namespace Common.Contracts.Ascents;
 
 public sealed record AscentRegistered : IntegrationEvent
 {
+    private const string DefaultVisibility = "Public";
+
     public required Guid AscentId { get; init; }
 
     public required Guid UserId { get; init; }
@@ -15,4 +17,6 @@ public sealed record AscentRegistered : IntegrationEvent
     public required int PeakAltitudeM { get; init; }
 
     public required DateOnly AscentDate { get; init; }
+
+    public string Visibility { get; init; } = DefaultVisibility;
 }
