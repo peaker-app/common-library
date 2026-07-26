@@ -24,4 +24,7 @@ public record Error(string Code, string Description, ErrorType Type)
 
     public static Error Unavailable(string code, string description) =>
         new(code, description, ErrorType.Unavailable);
+
+    public static Error TooManyRequests(string code, string description) =>
+        new(code, description, ErrorType.TooManyRequests);
 }
