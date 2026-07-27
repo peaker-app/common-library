@@ -2,7 +2,12 @@ namespace Common.Contracts.Abstractions;
 
 public abstract record IntegrationEvent
 {
-    public Guid MessageId { get; init; } = Guid.CreateVersion7();
+    /// <summary>
+    /// Identidad del mensaje de cara al consumidor. La fija el outbox con el identificador de la
+    /// fila publicada: si se genera aquí, cada reentrega estrenaría uno y la comprobación contra
+    /// <c>processed_messages</c> dejaría de reconocer el duplicado.
+    /// </summary>
+    public required Guid MessageId { get; init; }
 
     public Guid CorrelationId { get; init; }
 

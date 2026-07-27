@@ -12,6 +12,7 @@ internal static class DomainEventDispatcher
     public static async Task DispatchAsync(
         IServiceProvider provider,
         IDomainEvent domainEvent,
+        DomainEventContext context,
         CancellationToken cancellationToken)
     {
         Type handlerType = typeof(IDomainEventHandler<>).MakeGenericType(domainEvent.GetType());
@@ -19,7 +20,7 @@ internal static class DomainEventDispatcher
 
         foreach (object handler in provider.GetServices(handlerType).OfType<object>())
         {
-            await (Task)handleMethod.Invoke(handler, [domainEvent, cancellationToken])!;
+            await (Task)handleMethod.Invoke(handler, [domainEvent, context, cancellationToken])!;
         }
     }
 }

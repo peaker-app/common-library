@@ -11,6 +11,7 @@ namespace Common.Infrastructure.Persistence.Outbox;
 
 public sealed class OutboxProcessor<TContext>(
     IServiceScopeFactory scopeFactory,
+    IDateTimeProvider dateTimeProvider,
     IOptions<OutboxOptions> options,
     ILogger<OutboxProcessor<TContext>> logger) : BackgroundService
     where TContext : DbContext
@@ -50,10 +51,9 @@ public sealed class OutboxProcessor<TContext>(
         foreach (OutboxMessage message in messages)
         {
             await PublishAsync(scope.ServiceProvider, message, cancellationToken);
-        }
 
-        if (messages.Count > 0)
-        {
+            // Motivo: confirmar mensaje a mensaje acota la ventana de reentrega a uno solo. Confirmar
+            // el lote entero al final reenviaría todo lo ya publicado si el proceso cae a mitad.
             await context.SaveChangesAsync(cancellationToken);
         }
     }
@@ -64,8 +64,11 @@ public sealed class OutboxProcessor<TContext>(
         try
         {
             IDomainEvent domainEvent = Deserialize(message);
-            await DomainEventDispatcher.DispatchAsync(provider, domainEvent, cancellationToken);
-            message.ProcessedAtUtc = provider.GetRequiredService<IDateTimeProvider>().UtcNow;
+            DomainEventContext context = new(message.Id, message.OccurredAtUtc);
+
+            await DomainEventDispatcher.DispatchAsync(provider, domainEvent, context, cancellationToken);
+
+            message.ProcessedAtUtc = dateTimeProvider.UtcNow;
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
