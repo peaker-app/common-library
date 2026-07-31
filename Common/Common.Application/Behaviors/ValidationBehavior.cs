@@ -35,7 +35,7 @@ public sealed class ValidationBehavior<TRequest, TResponse>(IEnumerable<IValidat
             return [];
         }
 
-        var context = new ValidationContext<TRequest>(request);
+        ValidationContext<TRequest> context = new(request);
 
         ValidationResult[] results = await Task.WhenAll(
             validators.Select(validator => validator.ValidateAsync(context, cancellationToken)));

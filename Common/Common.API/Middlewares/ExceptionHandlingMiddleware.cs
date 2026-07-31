@@ -34,7 +34,7 @@ public sealed class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Ex
             return Task.CompletedTask;
         }
 
-        var problemDetails = new ProblemDetails
+        ProblemDetails problemDetails = new()
         {
             Status = statusCode,
             Title = title,
