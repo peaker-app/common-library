@@ -11,6 +11,11 @@ public sealed class UserContext(IHttpContextAccessor httpContextAccessor) : IUse
     public bool IsAuthenticated =>
         httpContextAccessor.HttpContext?.User.Identity?.IsAuthenticated ?? false;
 
+    public bool IsInRole(string role) =>
+        httpContextAccessor.HttpContext?.User
+            .FindAll(PeakerRoles.ClaimType)
+            .Any(claim => string.Equals(claim.Value, role, StringComparison.Ordinal)) ?? false;
+
     private Guid GetUserId()
     {
         ClaimsPrincipal? user = httpContextAccessor.HttpContext?.User;

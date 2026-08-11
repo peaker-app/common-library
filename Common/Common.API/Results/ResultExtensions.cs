@@ -8,6 +8,9 @@ public static class ResultExtensions
     public static IActionResult ToActionResult(this Result result) =>
         result.IsSuccess ? new NoContentResult() : Problem(result.Error);
 
+    public static IActionResult ToActionResult(this Result result, Func<IActionResult> onSuccess) =>
+        result.IsSuccess ? onSuccess() : Problem(result.Error);
+
     public static IActionResult ToActionResult<TValue>(this Result<TValue> result) =>
         result.IsSuccess ? new OkObjectResult(result.Value) : Problem(result.Error);
 

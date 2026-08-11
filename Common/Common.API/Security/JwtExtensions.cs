@@ -1,3 +1,4 @@
+using Common.Application.Abstractions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,11 +29,12 @@ public static class JwtExtensions
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
                     NameClaimType = "sub",
+                    RoleClaimType = PeakerRoles.ClaimType,
                     ClockSkew = TimeSpan.FromSeconds(30)
                 };
             });
 
-        services.AddAuthorization();
+        services.AddCommonAuthorization();
 
         return services;
     }
