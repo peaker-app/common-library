@@ -1,3 +1,4 @@
+using Common.Application.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -6,6 +7,8 @@ namespace Common.API.Middlewares;
 
 public sealed class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
 {
+    private const string ConcurrencyConflictTitle = "General.ConcurrencyConflict";
+
     public async Task InvokeAsync(HttpContext context)
     {
 #pragma warning disable CA1031 // Middleware global: cualquier excepción no controlada se traduce a ProblemDetails.
@@ -17,6 +20,11 @@ public sealed class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Ex
         {
             logger.LogWarning(exception, "Rejected request to {Path}", context.Request.Path);
             await WriteProblemDetailsAsync(context, exception.StatusCode, "The request could not be processed.");
+        }
+        catch (ConcurrencyConflictException exception)
+        {
+            logger.LogWarning(exception, "Concurrency conflict while processing {Path}", context.Request.Path);
+            await WriteProblemDetailsAsync(context, StatusCodes.Status409Conflict, ConcurrencyConflictTitle);
         }
         catch (Exception exception)
         {
