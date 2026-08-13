@@ -8,7 +8,7 @@ public sealed class JwtOptions
 
     public string Issuer { get; init; } = string.Empty;
 
-    public string Audience { get; init; } = string.Empty;
+    public IReadOnlyList<string> Audiences { get; init; } = [];
 
     public bool RequireHttpsMetadata { get; init; } = true;
 
@@ -17,4 +17,10 @@ public sealed class JwtOptions
     public TimeSpan MetadataRefreshInterval { get; init; } = TimeSpan.FromSeconds(30);
 
     public TimeSpan MetadataLastKnownGoodLifetime { get; init; } = TimeSpan.FromHours(24);
+
+    public bool IsValid() =>
+        !string.IsNullOrWhiteSpace(Authority)
+        && !string.IsNullOrWhiteSpace(Issuer)
+        && Audiences.Count > 0
+        && Audiences.All(audience => !string.IsNullOrWhiteSpace(audience));
 }

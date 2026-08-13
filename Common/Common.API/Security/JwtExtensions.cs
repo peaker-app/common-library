@@ -19,6 +19,15 @@ public static class JwtExtensions
     {
         JwtOptions options = configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>() ?? new JwtOptions();
 
+        services.AddOptions<JwtOptions>()
+            .Bind(configuration.GetSection(JwtOptions.SectionName))
+            .Validate(
+                bound => bound.IsValid(),
+                $"La sección '{JwtOptions.SectionName}' exige autoridad, emisor y al menos una audiencia: sin " +
+                "audiencia el servicio arrancaría rechazando todos los tokens con un 401 indistinguible de un " +
+                "token inválido.")
+            .ValidateOnStart();
+
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(bearer => Configure(bearer, options));
 
@@ -54,7 +63,7 @@ public static class JwtExtensions
             ValidateIssuer = true,
             ValidIssuer = options.Issuer,
             ValidateAudience = true,
-            ValidAudience = options.Audience,
+            ValidAudiences = options.Audiences,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
             ValidateWithLKG = true,
