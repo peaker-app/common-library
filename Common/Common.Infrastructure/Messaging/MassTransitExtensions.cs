@@ -13,6 +13,8 @@ public static class MassTransitExtensions
         Action<IBusRegistrationConfigurator>? configure = null)
     {
         services.Configure<MessagingOptions>(configuration.GetSection(MessagingOptions.SectionName));
+        services.AddSingleton<MessagingMetrics>();
+        services.AddSingleton<DeadLetterObserver>();
 
         services.AddMassTransit(bus =>
         {
@@ -31,6 +33,8 @@ public static class MassTransitExtensions
 
                 rabbit.UseMessageRetry(retry => retry.Exponential(
                     5, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(2)));
+
+                rabbit.ConnectReceiveObserver(context.GetRequiredService<DeadLetterObserver>());
 
                 rabbit.ConfigureEndpoints(context);
             });

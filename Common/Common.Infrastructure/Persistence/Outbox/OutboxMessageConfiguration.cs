@@ -17,7 +17,11 @@ public sealed class OutboxMessageConfiguration : IEntityTypeConfiguration<Outbox
         builder.Property(message => message.OccurredAtUtc).HasColumnName("occurred_at_utc").IsRequired();
         builder.Property(message => message.ProcessedAtUtc).HasColumnName("processed_at_utc");
         builder.Property(message => message.Error).HasColumnName("error");
+        builder.Property(message => message.AttemptCount).HasColumnName("attempt_count").HasDefaultValue(0);
+        builder.Property(message => message.NextAttemptAtUtc).HasColumnName("next_attempt_at_utc");
 
-        builder.HasIndex(message => message.ProcessedAtUtc).HasDatabaseName("ix_outbox_messages_processed_at_utc");
+        builder
+            .HasIndex(message => new { message.ProcessedAtUtc, message.NextAttemptAtUtc })
+            .HasDatabaseName("ix_outbox_messages_processed_at_utc");
     }
 }
