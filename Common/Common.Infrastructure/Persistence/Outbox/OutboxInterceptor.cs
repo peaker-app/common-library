@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Common.Application.Abstractions;
 using Common.Domain.Abstractions;
 using Microsoft.EntityFrameworkCore;
@@ -8,8 +7,6 @@ namespace Common.Infrastructure.Persistence.Outbox;
 
 public sealed class OutboxInterceptor(IDateTimeProvider dateTimeProvider) : SaveChangesInterceptor
 {
-    private static readonly JsonSerializerOptions SerializerOptions = new(JsonSerializerDefaults.Web);
-
     public override ValueTask<InterceptionResult<int>> SavingChangesAsync(
         DbContextEventData eventData,
         InterceptionResult<int> result,
@@ -51,7 +48,7 @@ public sealed class OutboxInterceptor(IDateTimeProvider dateTimeProvider) : Save
     {
         Id = Guid.CreateVersion7(),
         Type = domainEvent.GetType().AssemblyQualifiedName!,
-        Content = JsonSerializer.Serialize(domainEvent, domainEvent.GetType(), SerializerOptions),
+        Content = OutboxSerializer.Serialize(domainEvent),
         OccurredAtUtc = occurredAtUtc
     };
 }

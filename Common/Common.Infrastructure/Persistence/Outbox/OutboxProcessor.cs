@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Common.Application.Abstractions;
 using Common.Domain.Abstractions;
 using Microsoft.EntityFrameworkCore;
@@ -17,8 +16,6 @@ public sealed class OutboxProcessor<TContext>(
     ILogger<OutboxProcessor<TContext>> logger) : BackgroundService
     where TContext : DbContext
 {
-    private static readonly JsonSerializerOptions SerializerOptions = new(JsonSerializerDefaults.Web);
-
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         using PeriodicTimer timer = new(options.Value.PollingInterval);
@@ -116,7 +113,7 @@ public sealed class OutboxProcessor<TContext>(
 #pragma warning disable CA1031 // El outbox aísla el fallo por mensaje: lo contabiliza y no aborta el lote.
         try
         {
-            IDomainEvent domainEvent = Deserialize(message);
+            IDomainEvent domainEvent = OutboxSerializer.Deserialize(message);
             DomainEventContext eventContext = new(message.Id, message.OccurredAtUtc);
 
             await DomainEventDispatcher.DispatchAsync(provider, domainEvent, eventContext, cancellationToken);
@@ -184,13 +181,5 @@ public sealed class OutboxProcessor<TContext>(
         int dot = fullName.LastIndexOf('.');
 
         return dot < 0 ? fullName : fullName[(dot + 1)..];
-    }
-
-    private static IDomainEvent Deserialize(OutboxMessage message)
-    {
-        Type type = Type.GetType(message.Type)
-            ?? throw new InvalidOperationException($"Unknown outbox message type '{message.Type}'.");
-
-        return (IDomainEvent)JsonSerializer.Deserialize(message.Content, type, SerializerOptions)!;
     }
 }
