@@ -5,6 +5,8 @@ namespace Common.Infrastructure.Persistence.Outbox;
 
 public sealed class OutboxMetrics
 {
+    private const string MessagesUnit = "{message}";
+
     private readonly Counter<long> published;
     private readonly Counter<long> failed;
 
@@ -13,14 +15,14 @@ public sealed class OutboxMetrics
     public OutboxMetrics()
     {
         published = PeakerMetrics.Meter.CreateCounter<long>(
-            "peaker.outbox.messages.published", "{message}");
+            "peaker.outbox.messages.published", MessagesUnit);
         failed = PeakerMetrics.Meter.CreateCounter<long>(
-            "peaker.outbox.messages.failed", "{message}");
+            "peaker.outbox.messages.failed", MessagesUnit);
 
         PeakerMetrics.Meter.CreateObservableGauge(
-            "peaker.outbox.pending.count", () => backlog.PendingCount, "{message}");
+            "peaker.outbox.pending.count", () => backlog.PendingCount, MessagesUnit);
         PeakerMetrics.Meter.CreateObservableGauge(
-            "peaker.outbox.parked.count", () => backlog.ParkedCount, "{message}");
+            "peaker.outbox.parked.count", () => backlog.ParkedCount, MessagesUnit);
         PeakerMetrics.Meter.CreateObservableGauge(
             "peaker.outbox.pending.oldest_age", () => backlog.OldestPendingAge.TotalSeconds, "s");
     }

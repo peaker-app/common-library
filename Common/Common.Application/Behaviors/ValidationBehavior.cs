@@ -40,11 +40,10 @@ public sealed class ValidationBehavior<TRequest, TResponse>(IEnumerable<IValidat
         ValidationResult[] results = await Task.WhenAll(
             validators.Select(validator => validator.ValidateAsync(context, cancellationToken)));
 
-        return results
+        return [.. results
             .SelectMany(result => result.Errors)
             .Where(failure => failure is not null)
-            .Select(failure => Error.Validation(failure.PropertyName, failure.ErrorMessage))
-            .ToArray();
+            .Select(failure => Error.Validation(failure.PropertyName, failure.ErrorMessage))];
     }
 
     private static TResponse CreateFailureResult(ValidationError validationError)
