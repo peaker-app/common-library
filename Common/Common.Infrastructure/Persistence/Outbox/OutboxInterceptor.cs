@@ -24,12 +24,11 @@ public sealed class OutboxInterceptor(IDateTimeProvider dateTimeProvider) : Save
     {
         DateTime occurredAtUtc = dateTimeProvider.UtcNow;
 
-        List<OutboxMessage> messages = context.ChangeTracker
+        List<OutboxMessage> messages = [.. context.ChangeTracker
             .Entries<AggregateRoot>()
             .Select(entry => entry.Entity)
             .SelectMany(DrainDomainEvents)
-            .Select(domainEvent => ToOutboxMessage(domainEvent, occurredAtUtc))
-            .ToList();
+            .Select(domainEvent => ToOutboxMessage(domainEvent, occurredAtUtc))];
 
         if (messages.Count > 0)
         {

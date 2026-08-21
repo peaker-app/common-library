@@ -7,7 +7,7 @@ namespace Common.Infrastructure.Persistence.Outbox;
 
 internal static class DomainEventDispatcher
 {
-    private const string HandleMethodName = nameof(IDomainEventHandler<IDomainEvent>.Handle);
+    private const string HandleMethodName = nameof(IDomainEventHandler<>.Handle);
 
     public static async Task DispatchAsync(
         IServiceProvider provider,

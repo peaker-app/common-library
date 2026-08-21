@@ -38,10 +38,8 @@ public sealed class ValueObjectTests
         (code == label).Should().BeFalse();
     }
 
-    public static TheoryData<ValueObject?> MissingValues => new() { null };
-
     [Theory]
-    [MemberData(nameof(MissingValues))]
+    [InlineData(null)]
     public void Equals_WithAMissingValue_IsFalse(ValueObject? missing)
     {
         Code code = new("PK");
