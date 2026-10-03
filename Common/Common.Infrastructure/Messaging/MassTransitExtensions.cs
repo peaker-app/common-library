@@ -10,16 +10,18 @@ public static class MassTransitExtensions
     public static IServiceCollection AddEventBus(
         this IServiceCollection services,
         IConfiguration configuration,
-        Action<IBusRegistrationConfigurator>? configure = null)
+        EventBusRegistration registration)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(registration.EndpointPrefix);
+
         services.Configure<MessagingOptions>(configuration.GetSection(MessagingOptions.SectionName));
         services.AddSingleton<MessagingMetrics>();
         services.AddSingleton<DeadLetterObserver>();
 
         services.AddMassTransit(bus =>
         {
-            bus.SetKebabCaseEndpointNameFormatter();
-            configure?.Invoke(bus);
+            bus.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter(registration.EndpointPrefix, false));
+            registration.ConfigureConsumers?.Invoke(bus);
 
             bus.UsingRabbitMq((context, rabbit) =>
             {
@@ -42,4 +44,12 @@ public static class MassTransitExtensions
 
         return services;
     }
+
+    public static void AddTemporaryConsumer<TConsumer>(this IBusRegistrationConfigurator bus)
+        where TConsumer : class, IConsumer =>
+        bus.AddConsumer<TConsumer>().Endpoint(endpoint =>
+        {
+            endpoint.Temporary = true;
+            endpoint.InstanceId = Environment.MachineName;
+        });
 }
